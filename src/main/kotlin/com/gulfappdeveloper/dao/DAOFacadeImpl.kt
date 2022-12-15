@@ -14,7 +14,8 @@ class DAOFacadeImpl : DAOFacade {
     )
 
     override suspend fun allArticles(): List<Article> = dbQuery {
-        Articles.selectAll().map(::resultRowToArticle)
+        Articles.selectAll().orderBy(Articles.id, SortOrder.DESC)
+            .map(::resultRowToArticle)
     }
 
     override suspend fun article(id: Int): Article? {
@@ -55,6 +56,23 @@ class DAOFacadeImpl : DAOFacade {
             Articles.deleteWhere {
                 Articles.id eq id
             } > 0
+        }
+    }
+
+    override suspend fun deleteAllArticles(): Boolean {
+        return dbQuery {
+            Articles.deleteAll()
+        } > 0
+    }
+
+    override suspend fun searchOneArticle(value: String): List<Article> {
+        return dbQuery {
+            Articles.select {
+                (Articles.title like "%$value%") or (Articles.body like "%$value%")
+            }.orderBy(Articles.id,SortOrder.DESC)
+                .map {
+                resultRowToArticle(it)
+            }
         }
     }
 

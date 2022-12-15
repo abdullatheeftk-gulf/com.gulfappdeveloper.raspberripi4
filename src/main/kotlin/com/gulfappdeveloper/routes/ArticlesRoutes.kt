@@ -2,14 +2,11 @@ package com.gulfappdeveloper.routes
 
 import com.gulfappdeveloper.dao.DAOFacade
 import com.gulfappdeveloper.models.Article
-import com.gulfappdeveloper.models.Articles
 import io.ktor.http.*
-
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.Serializable
 import kotlin.Exception
 
 
@@ -27,9 +24,11 @@ fun Route.articleRoutes(dao: DAOFacade) {
             idString?.let {
                 id = it.toInt()
             }
-            if (id ==0) {throw Exception("Received value is null")}else {
+            if (id == 0) {
+                throw Exception("Received value is null")
+            } else {
                 println(id)
-                var article: com.gulfappdeveloper.models.Article? = null
+                var article: Article? = null
 
                 article = dao.article(id = id)
                 call.respond(mapOf("result" to article))
@@ -43,6 +42,20 @@ fun Route.articleRoutes(dao: DAOFacade) {
         }
 
     }
+
+    get("/searchArticle/{value}") {
+        try {
+            val value = call.parameters["value"] ?: throw Exception("search value is null")
+            val result = dao.searchOneArticle(value = value)
+            call.respond(hashMapOf("result" to result))
+        } catch (e: Exception) {
+            println(e.message)
+            call.respond(
+                status = HttpStatusCode(HttpStatusCode.BadRequest.value, description = "There have some error"),
+                message = mapOf("result" to e.message)
+            )
+        }
+    }
     post("/insertArticle") {
         try {
             val article = call.receive<Article>()
@@ -51,7 +64,7 @@ fun Route.articleRoutes(dao: DAOFacade) {
                 body = article.body
             )
             call.respond(mapOf("result" to insert))
-        }catch (e:Exception){
+        } catch (e: Exception) {
             call.respond(
                 status = HttpStatusCode(HttpStatusCode.BadRequest.value, description = "Error"),
                 message = hashMapOf("result" to e.message)
@@ -61,14 +74,14 @@ fun Route.articleRoutes(dao: DAOFacade) {
 
     put("/editArticle") {
         try {
-            val article:Article = call.receive()
+            val article: Article = call.receive()
             val result = dao.editArticle(
                 id = article.id,
                 title = article.body,
                 body = article.body
             )
             call.respond(message = result)
-        }catch (e:Exception){
+        } catch (e: Exception) {
             println(e.message)
             call.respond(
                 status = HttpStatusCode(HttpStatusCode.BadRequest.value, description = "Error"),
@@ -85,12 +98,24 @@ fun Route.articleRoutes(dao: DAOFacade) {
             idString?.let {
                 id = it.toInt()
             }
-            if (id<=1) throw Exception("Bad request id lees than 0")
+            if (id <= 1) throw Exception("Bad request id lees than 0")
             val result = dao.deleteArticle(id = id)
             call.respond(message = hashMapOf("result" to result))
 
-        }catch (e:Exception){
+        } catch (e: Exception) {
             println(e.message)
+            call.respond(
+                status = HttpStatusCode(HttpStatusCode.BadRequest.value, description = "Error"),
+                message = hashMapOf("result" to e.message)
+            )
+        }
+    }
+
+    delete("/deleteAllArticles") {
+        try {
+            val result = dao.deleteAllArticles()
+            call.respond(hashMapOf("result" to result))
+        } catch (e: Exception) {
             call.respond(
                 status = HttpStatusCode(HttpStatusCode.BadRequest.value, description = "Error"),
                 message = hashMapOf("result" to e.message)

@@ -8,4 +8,8 @@ interface DAOFacade {
     suspend fun addNewArticle(title:String,body:String):Article?
     suspend fun editArticle(id: Int,title: String,body: String):Boolean
     suspend fun deleteArticle(id:Int):Boolean
+
+    suspend fun deleteAllArticles():Boolean
+
+    suspend fun searchOneArticle(value:String):List<Article>
 }
