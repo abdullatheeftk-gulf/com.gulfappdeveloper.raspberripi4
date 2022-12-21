@@ -27,6 +27,12 @@ fun Application.configureRouting() {
 
     routing {
 
+        post("/test") {
+            val testSource = call.receive<TestSource>()
+            println(testSource)
+            call.respond(message = testSource)
+        }
+
 
 
         get("/") {
@@ -38,5 +44,8 @@ fun Application.configureRouting() {
         }
     }
 }
+
+@Serializable
+data class TestSource(val id:Int,val message:String)
 
 
